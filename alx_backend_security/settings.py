@@ -9,13 +9,15 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import environ
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+# Creates an env object that allows us to use settings from the .env file
+# and also allows us to set default values for the settings
+env = environ.Env(DEBUG=(bool, False))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django_ip_geolocation.middleware.IpGeolocationMiddleware',
     'ip_tracking.middleware.IPLoggingMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -122,3 +125,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+IP_GEOLOCATION_SETTINGS = {
+    'BACKEND': 'django_ip_geolocation.backends.IPGeolocationAPI',
+    'BACKEND_API_KEY': '',
+    'CACHE_TIMEOUT': 24 * 3600,
+}
