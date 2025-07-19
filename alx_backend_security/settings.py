@@ -9,11 +9,15 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import os
 import environ
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Allows Django to load the settings form the .env file  into the env object
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Creates an env object that allows us to use settings from the .env file
 # and also allows us to set default values for the settings
@@ -22,10 +26,10 @@ env = environ.Env(DEBUG=(bool, False))
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a8ahw#&q=+vx8)(9l&&98qc^9tms@w1=tqu6bx6u1!^u_*m%h+'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = []
 
@@ -39,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg',
+    'rest_framework',
+    'corsheaders',
     'ip_tracking',
 ]
 
@@ -131,4 +138,25 @@ IP_GEOLOCATION_SETTINGS = {
     'BACKEND': 'django_ip_geolocation.backends.IPGeolocationAPI',
     'BACKEND_API_KEY': '',
     'CACHE_TIMEOUT': 24 * 3600,
+}
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'}
+    }
+}
+
+RATELIMIT_USE_CACHE = 'default'
+
+
+CELERY_BROKER_URL = 'pyamqp://guest:guest@localhost//'
+CELERY_RESULT_BACKEND = 'pyamqp://guest:guest@localhost//'
+CELERY_BEAT_SCHEDULE = {
+    'detect-anomalies-every-hour': {
+        'task': 'ip_tracking.tasks.detect_anomalies',
+        'schedule': 3600.0,
+    },
 }

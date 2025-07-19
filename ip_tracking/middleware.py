@@ -9,8 +9,18 @@ class IPLoggingMiddleware(MiddlewareMixin):
         ip = self.get_client_ip(request)
         if BlockedIP.objects.filter(ip_address=ip).exists():
             return HttpResponseForbidden()
+        # getting geolocation data
+        cache_key = f'geocache-{ip}'
+        geo_data = cache.get(cache_key)
+        
+        if not geo_data:
+            location = request.geolocation
+            if location:
+                country = location.country
+                city = location.city
+        
         path = request.path
-        RequestLog.objects.create(ip_address=ip, path=path)
+        RequestLog.objects.create(ip_address=ip, path=path, country=country, city=city)
         return None
 
     
